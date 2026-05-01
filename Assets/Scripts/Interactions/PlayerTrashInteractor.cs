@@ -387,76 +387,72 @@ public class PlayerTrashInteractor : MonoBehaviour
                OVRInput.GetDown(OVRInput.Button.PrimaryThumbstick, OVRInput.Controller.All);
     }
 
-    private bool WasInputSystemPickupPressed()
-    {
 #if ENABLE_INPUT_SYSTEM
-        detectedInputSystemControllers = 0;
+private bool WasInputSystemPickupPressed()
+{
+    detectedInputSystemControllers = 0;
 
-        foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
+    foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
+    {
+        if (device is not UnityEngine.InputSystem.XR.XRController controller)
         {
-            if (device is not UnityEngine.InputSystem.XR.XRController controller)
-            {
-                continue;
-            }
-
-            detectedInputSystemControllers++;
-
-            if (IsPressedThisFrame(controller.triggerPressed) ||
-                IsPressedThisFrame(controller.gripPressed) ||
-                IsPressedThisFrame(controller.primaryButton))
-            {
-                return true;
-            }
+            continue;
         }
-#endif
 
-        return false;
-    }
+        detectedInputSystemControllers++;
 
-    private bool WasInputSystemThrowPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
-        {
-            if (device is not UnityEngine.InputSystem.XR.XRController controller)
-            {
-                continue;
-            }
-
-            if (IsPressedThisFrame(controller.secondaryButton) ||
-                IsPressedThisFrame(controller.thumbstickClicked))
-            {
-                return true;
-            }
-        }
-#endif
-
-        return false;
-    }
-
-#if ENABLE_INPUT_SYSTEM
-    private static bool IsPressedThisFrame(UnityEngine.InputSystem.Controls.ButtonControl button)
-    {
-        return button != null && button.wasPressedThisFrame;
-    }
-#endif
-
-    private bool IsXRButtonPressed(InputFeatureUsage<bool> button)
-    {
-        UnityEngine.XR.InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-        if (leftController.isValid && leftController.TryGetFeatureValue(button, out bool leftPressed) && leftPressed)
+        if (IsPressedThisFrame(controller.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("triggerPressed")) ||
+            IsPressedThisFrame(controller.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("gripPressed")) ||
+            IsPressedThisFrame(controller.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("primaryButton")))
         {
             return true;
         }
+    }
 
-        UnityEngine.XR.InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-        if (rightController.isValid && rightController.TryGetFeatureValue(button, out bool rightPressed) && rightPressed)
+    return false;
+}
+
+private bool WasInputSystemThrowPressed()
+{
+    foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
+    {
+        if (device is not UnityEngine.InputSystem.XR.XRController controller)
+        {
+            continue;
+        }
+
+        if (IsPressedThisFrame(controller.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("secondaryButton")) ||
+            IsPressedThisFrame(controller.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("primary2DAxisClick")))
         {
             return true;
         }
-
-        return false;
     }
+
+    return false;
+}
+
+private static bool IsPressedThisFrame(UnityEngine.InputSystem.Controls.ButtonControl button)
+{
+    return button != null && button.wasPressedThisFrame;
+}
+#endif
+
+private bool IsXRButtonPressed(InputFeatureUsage<bool> button)
+{
+    UnityEngine.XR.InputDevice leftController = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+    if (leftController.isValid && leftController.TryGetFeatureValue(button, out bool leftPressed) && leftPressed)
+    {
+        return true;
+    }
+
+    UnityEngine.XR.InputDevice rightController = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+    if (rightController.isValid && rightController.TryGetFeatureValue(button, out bool rightPressed) && rightPressed)
+    {
+        return true;
+    }
+
+    return false;
+}
 
     public string GetDebugStatus()
     {

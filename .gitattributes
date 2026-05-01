@@ -169,3 +169,12 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+
+# Additional Unity / Android / XR large files
+*.aab                   lfs
+*.aar                   lfs
+*.jar                   lfs
+*.bundle                lfs
+*.bytes                 lfs
+*.onnx                  lfs
