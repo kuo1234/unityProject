@@ -19,13 +19,22 @@ public class TrashSpawner : MonoBehaviour
     {
         while (true)
         {
-            SpawnTrash();
+            if (ScoreManager.Instance == null || ScoreManager.Instance.IsRoundActive)
+            {
+                SpawnTrash();
+            }
+
             yield return new WaitForSeconds(spawnInterval);
         }
     }
 
     private void SpawnTrash()
     {
+        if (ScoreManager.Instance != null && !ScoreManager.Instance.IsRoundActive)
+        {
+            return;
+        }
+
         if (spawnPoint == null || trashPrefabs == null || trashPrefabs.Length == 0)
         {
             return;

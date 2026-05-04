@@ -25,7 +25,7 @@ public class WashingStation : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        TrashItem trashItem = other.GetComponent<TrashItem>();
+        TrashItem trashItem = other.GetComponentInParent<TrashItem>();
         if (trashItem == null)
         {
             return;
@@ -48,10 +48,13 @@ public class WashingStation : MonoBehaviour
 
         trashItem.isDirty = false;
 
-        MeshRenderer meshRenderer = other.GetComponent<MeshRenderer>();
-        if (meshRenderer != null && cleanMaterial != null)
+        MeshRenderer[] meshRenderers = trashItem.GetComponentsInChildren<MeshRenderer>();
+        if (meshRenderers.Length > 0 && cleanMaterial != null)
         {
-            meshRenderer.material = cleanMaterial;
+            foreach (MeshRenderer meshRenderer in meshRenderers)
+            {
+                meshRenderer.material = cleanMaterial;
+            }
         }
 
         washTimers.Remove(trashItem);
@@ -60,7 +63,7 @@ public class WashingStation : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        TrashItem trashItem = other.GetComponent<TrashItem>();
+        TrashItem trashItem = other.GetComponentInParent<TrashItem>();
         if (trashItem != null)
         {
             washTimers.Remove(trashItem);

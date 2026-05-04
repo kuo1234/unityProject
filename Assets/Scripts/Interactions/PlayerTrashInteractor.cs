@@ -401,9 +401,9 @@ public class PlayerTrashInteractor : MonoBehaviour
 
             detectedInputSystemControllers++;
 
-            if (IsPressedThisFrame(controller.triggerPressed) ||
-                IsPressedThisFrame(controller.gripPressed) ||
-                IsPressedThisFrame(controller.primaryButton))
+            if (IsControlPressedThisFrame(controller, "triggerPressed") ||
+                IsControlPressedThisFrame(controller, "gripPressed") ||
+                IsControlPressedThisFrame(controller, "primaryButton"))
             {
                 return true;
             }
@@ -423,8 +423,8 @@ public class PlayerTrashInteractor : MonoBehaviour
                 continue;
             }
 
-            if (IsPressedThisFrame(controller.secondaryButton) ||
-                IsPressedThisFrame(controller.thumbstickClicked))
+            if (IsControlPressedThisFrame(controller, "secondaryButton") ||
+                IsControlPressedThisFrame(controller, "thumbstickClicked"))
             {
                 return true;
             }
@@ -435,8 +435,10 @@ public class PlayerTrashInteractor : MonoBehaviour
     }
 
 #if ENABLE_INPUT_SYSTEM
-    private static bool IsPressedThisFrame(UnityEngine.InputSystem.Controls.ButtonControl button)
+    private static bool IsControlPressedThisFrame(UnityEngine.InputSystem.InputControl parent, string controlName)
     {
+        UnityEngine.InputSystem.Controls.ButtonControl button =
+            parent.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>(controlName);
         return button != null && button.wasPressedThisFrame;
     }
 #endif
