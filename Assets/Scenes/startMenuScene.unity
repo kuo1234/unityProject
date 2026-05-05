@@ -263,6 +263,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneLoader
   gameSceneName: GameScene
+  menuSceneName: startMenuScene
+  completeSceneName: CompleteScene
 --- !u!4 &73786567
 Transform:
   m_ObjectHideFlags: 0

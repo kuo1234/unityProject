@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 129177155}
   - component: {fileID: 129177154}
   m_Layer: 0
-  m_Name: BinLabel_Food
+  m_Name: BinLabel_Paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -150,9 +150,9 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 129177153}
-  m_Text: Food
+  m_Text: Paper
   m_OffsetZ: 0
-  m_CharacterSize: 0.075
+  m_CharacterSize: 0.28
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -504,7 +504,7 @@ GameObject:
   - component: {fileID: 473954458}
   - component: {fileID: 473954457}
   m_Layer: 0
-  m_Name: BinLabel_Recyclable
+  m_Name: BinLabel_Plastic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -518,9 +518,9 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 473954456}
-  m_Text: Recyclable
+  m_Text: Plastic
   m_OffsetZ: 0
-  m_CharacterSize: 0.075
+  m_CharacterSize: 0.28
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -862,6 +862,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WashingStation
   cleanMaterial: {fileID: 2100000, guid: b21c2cabfc34c9a4898bdcc6397e90f5, type: 2}
+  progressText: {fileID: 0}
+  washDuration: 2
 --- !u!23 &798532524
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1101,7 +1103,7 @@ GameObject:
   - component: {fileID: 1098656500}
   - component: {fileID: 1098656499}
   m_Layer: 0
-  m_Name: Bin_Food
+  m_Name: Bin_Paper
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1120,6 +1122,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 2
+  acceptedFlashMaterial: {fileID: 0}
+  rejectedFlashMaterial: {fileID: 0}
 --- !u!23 &1098656500
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1358,6 +1362,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 0
+  acceptedFlashMaterial: {fileID: 0}
+  rejectedFlashMaterial: {fileID: 0}
 --- !u!23 &1237647524
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1508,8 +1514,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
   score: 0
   mistakes: 0
-  interactor: {fileID: 0}
-  clampGrabber: {fileID: 0}
+  lastFeedbackMessage: Sort trash into the matching bins.
 --- !u!4 &1477793949
 Transform:
   m_ObjectHideFlags: 0
@@ -1739,7 +1744,7 @@ TextMesh:
   m_GameObject: {fileID: 1766759619}
   m_Text: General
   m_OffsetZ: 0
-  m_CharacterSize: 0.075
+  m_CharacterSize: 0.28
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -1861,7 +1866,7 @@ GameObject:
   - component: {fileID: 1993383240}
   - component: {fileID: 1993383239}
   m_Layer: 0
-  m_Name: Bin_Recyclable
+  m_Name: Bin_Plastic
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1880,6 +1885,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 1
+  acceptedFlashMaterial: {fileID: 0}
+  rejectedFlashMaterial: {fileID: 0}
 --- !u!23 &1993383240
 MeshRenderer:
   m_ObjectHideFlags: 0

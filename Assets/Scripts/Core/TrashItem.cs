@@ -3,10 +3,8 @@ using UnityEngine;
 public enum TrashCategory
 {
     General,
-    Recyclable_Plastic,
-    Recyclable_Paper,
-    FoodWaste_Raw,
-    FoodWaste_Cooked
+    Recyclable,
+    Food
 }
 
 public class TrashItem : MonoBehaviour

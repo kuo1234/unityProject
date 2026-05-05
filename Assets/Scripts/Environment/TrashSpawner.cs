@@ -9,6 +9,7 @@ public class TrashSpawner : MonoBehaviour
     public int maxActiveTrash = 8;
 
     private const float SpawnForce = 0.5f;
+    private bool spawningEnabled;
 
     private void Start()
     {
@@ -26,6 +27,11 @@ public class TrashSpawner : MonoBehaviour
 
     private void SpawnTrash()
     {
+        if (!spawningEnabled)
+        {
+            return;
+        }
+
         if (spawnPoint == null || trashPrefabs == null || trashPrefabs.Length == 0)
         {
             return;
@@ -43,6 +49,7 @@ public class TrashSpawner : MonoBehaviour
         }
 
         GameObject spawnedTrash = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+        spawnedTrash.SetActive(true);
 
         Rigidbody spawnedRigidbody = spawnedTrash.GetComponent<Rigidbody>();
 
@@ -59,5 +66,10 @@ public class TrashSpawner : MonoBehaviour
             targetRigidbody.AddForce(targetTransform.forward * SpawnForce, ForceMode.Acceleration);
             yield return new WaitForFixedUpdate();
         }
+    }
+
+    public void SetSpawningEnabled(bool enabled)
+    {
+        spawningEnabled = enabled;
     }
 }

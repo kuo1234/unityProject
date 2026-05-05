@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2de91daefc0b29940abd6e87c04c74a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrashItem
-  itemType: 2
+  itemType: 1
   isDirty: 0
   isCompoundItem: 0
 --- !u!54 &7772500083687944587

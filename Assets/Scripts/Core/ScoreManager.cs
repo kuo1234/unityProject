@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -6,10 +8,10 @@ public class ScoreManager : MonoBehaviour
 
     public int score;
     public int mistakes;
-    public PlayerTrashInteractor interactor;
-    public TrashClampGrabber clampGrabber;
+    public string lastFeedbackMessage = "Sort trash into the matching bins.";
 
-    private GUIStyle labelStyle;
+    public event Action<int, int> ScoreChanged;
+    public event Action<string, bool> FeedbackRaised;
 
     private void Awake()
     {
@@ -20,52 +22,38 @@ public class ScoreManager : MonoBehaviour
         }
 
         Instance = this;
+
+        if (SceneManager.GetActiveScene().name == "GameScene" && GetComponent<GameSessionManager>() == null)
+        {
+            gameObject.AddComponent<GameSessionManager>();
+        }
     }
 
     public void AddSortedItem()
     {
         score++;
+        RaiseFeedback("Correct sort", true);
+        ScoreChanged?.Invoke(score, mistakes);
     }
 
-    public void AddSortingMistake()
+    public void AddSortingMistake(string reason = "Wrong bin")
     {
         mistakes++;
+        RaiseFeedback(reason, false);
+        ScoreChanged?.Invoke(score, mistakes);
     }
 
-    private void OnGUI()
+    public void ResetScore()
     {
-        if (labelStyle == null)
-        {
-            labelStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 28,
-                normal = { textColor = Color.white }
-            };
-        }
+        score = 0;
+        mistakes = 0;
+        lastFeedbackMessage = "Sort trash into the matching bins.";
+        ScoreChanged?.Invoke(score, mistakes);
+    }
 
-        GUI.Label(new Rect(20f, 20f, 320f, 40f), $"Score: {score}", labelStyle);
-        GUI.Label(new Rect(20f, 60f, 320f, 40f), $"Mistakes: {mistakes}", labelStyle);
-        GUI.Label(new Rect(20f, 100f, 920f, 40f), "Meta XR keys: T=index trigger, U=grip, B=A/X pick/drop. N=B/Y or I=thumbstick throws.", labelStyle);
-        if (interactor == null)
-        {
-            interactor = FindFirstObjectByType<PlayerTrashInteractor>();
-        }
-
-        if (interactor != null)
-        {
-            GUI.Label(new Rect(20f, 140f, 1100f, 40f), interactor.GetDebugStatus(), labelStyle);
-        }
-
-        if (clampGrabber == null)
-        {
-            clampGrabber = FindFirstObjectByType<TrashClampGrabber>();
-        }
-
-        if (clampGrabber != null)
-        {
-            GUI.Label(new Rect(20f, 180f, 1100f, 40f), clampGrabber.GetDebugStatus(), labelStyle);
-        }
-
-        GUI.Label(new Rect((Screen.width * 0.5f) - 10f, (Screen.height * 0.5f) - 18f, 40f, 40f), "+", labelStyle);
+    public void RaiseFeedback(string message, bool positive)
+    {
+        lastFeedbackMessage = message;
+        FeedbackRaised?.Invoke(message, positive);
     }
 }
