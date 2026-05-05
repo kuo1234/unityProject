@@ -7,6 +7,7 @@ public class ScoreManager : MonoBehaviour
     public int score;
     public int mistakes;
     public PlayerTrashInteractor interactor;
+    public TrashClampGrabber clampGrabber;
 
     private GUIStyle labelStyle;
 
@@ -53,6 +54,16 @@ public class ScoreManager : MonoBehaviour
         if (interactor != null)
         {
             GUI.Label(new Rect(20f, 140f, 1100f, 40f), interactor.GetDebugStatus(), labelStyle);
+        }
+
+        if (clampGrabber == null)
+        {
+            clampGrabber = FindFirstObjectByType<TrashClampGrabber>();
+        }
+
+        if (clampGrabber != null)
+        {
+            GUI.Label(new Rect(20f, 180f, 1100f, 40f), clampGrabber.GetDebugStatus(), labelStyle);
         }
 
         GUI.Label(new Rect((Screen.width * 0.5f) - 10f, (Screen.height * 0.5f) - 18f, 40f, 40f), "+", labelStyle);

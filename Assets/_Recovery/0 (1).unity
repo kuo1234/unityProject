@@ -1085,8 +1085,16 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 487254, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1632261335}
+    - targetCorrespondingSourceObject: {fileID: 4484591312116288, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1625631607}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+--- !u!4 &962294109 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4484591312116288, guid: 126d619cf4daa52469682f85c1378b4a, type: 3}
+  m_PrefabInstance: {fileID: 945919650}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1098656498
 GameObject:
   m_ObjectHideFlags: 0
@@ -1509,7 +1517,6 @@ MonoBehaviour:
   score: 0
   mistakes: 0
   interactor: {fileID: 0}
-  clampGrabber: {fileID: 0}
 --- !u!4 &1477793949
 Transform:
   m_ObjectHideFlags: 0
@@ -1641,7 +1648,7 @@ Transform:
   m_Children:
   - {fileID: 811374397}
   - {fileID: 696485937}
-  m_Father: {fileID: 1632261335}
+  m_Father: {fileID: 962294109}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1625631608
 MonoBehaviour:
@@ -1660,10 +1667,9 @@ MonoBehaviour:
   closeAxis: 4
   keyboardCloseKey: 103
   useMouseLeftButton: 1
-  closeThreshold: 0.55
-  reopenThreshold: 0.2
-  grabRadius: 0.35
-  grabReach: 0.65
+  closeThreshold: 0.65
+  reopenThreshold: 0.3
+  grabRadius: 0.24
   grabbableLayers:
     serializedVersion: 2
     m_Bits: 4294967291
@@ -1708,7 +1714,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 721740127}
-  - {fileID: 1625631607}
   m_Father: {fileID: 1360097709}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1766759619
