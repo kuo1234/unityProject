@@ -369,6 +369,11 @@ public class GameSessionManager : MonoBehaviour
             return;
         }
 
+        if (HasConfiguredSpawnerPrefabs(spawner.trashPrefabs))
+        {
+            return;
+        }
+
         spawner.trashPrefabs = new[]
         {
             CreateRuntimeTrashTemplate("Trash_General_Template", PrimitiveType.Capsule, TrashCategory.General, false, generalMaterial),
@@ -379,6 +384,24 @@ public class GameSessionManager : MonoBehaviour
             CreateRuntimeTrashTemplate("Trash_DirtyPlastic_Template", PrimitiveType.Sphere, TrashCategory.Recyclable, true, dirtyMaterial),
             CreateRuntimeTrashTemplate("Trash_DirtyPaper_Template", PrimitiveType.Cube, TrashCategory.Recyclable, true, dirtyMaterial)
         };
+    }
+
+    private static bool HasConfiguredSpawnerPrefabs(GameObject[] prefabs)
+    {
+        if (prefabs == null || prefabs.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (GameObject prefab in prefabs)
+        {
+            if (prefab != null && prefab.GetComponent<TrashItem>() != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private GameObject CreateRuntimeTrashTemplate(string objectName, PrimitiveType primitiveType, TrashCategory category, bool isDirty, Material material)
