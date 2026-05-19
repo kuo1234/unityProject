@@ -7,7 +7,18 @@ public class GameSessionManager : MonoBehaviour
 
     private const float DashboardTextSize = 0.07f;
     private const float FeedbackTextSize = 0.075f;
+    private const float MistakeAlertDistance = 0.42f;
+    private const float MistakeAlertTitleSize = 0.018f;
+    private const float MistakeAlertActionSize = 0.014f;
+    private const float MistakeAlertSeconds = 1.8f;
+    private static readonly Vector3 MistakeAlertPanelScale = new Vector3(0.82f, 0.24f, 1f);
     private const float BinLabelTextSize = 0.075f;
+    private const float FeedbackPulseSeconds = 0.7f;
+    private const float MistakeAlertPulseSeconds = 0.8f;
+    private const float StarCelebrationDistance = 0.58f;
+    private const float StarCelebrationSeconds = 2.25f;
+    private const float StarCelebrationPulseSeconds = 1.2f;
+    private const float StarCelebrationTextSize = 0.022f;
 
     [Header("Round")]
     public float roundDurationSeconds = 180f;
@@ -26,6 +37,19 @@ public class GameSessionManager : MonoBehaviour
     private AudioSource feedbackAudio;
     private AudioClip successClip;
     private AudioClip errorClip;
+    private float feedbackPulseEndTime;
+    private Transform mistakeAlertAnchor;
+    private TextMesh mistakeAlertTitleText;
+    private TextMesh mistakeAlertActionText;
+    private Transform mistakeAlertPanelTransform;
+    private float mistakeAlertClearTime;
+    private float mistakeAlertPulseEndTime;
+    private Transform starCelebrationAnchor;
+    private TextMesh starCelebrationText;
+    private ParticleSystem starConfetti;
+    private AudioClip starClip;
+    private float starCelebrationClearTime;
+    private float starCelebrationPulseEndTime;
     private Material generalMaterial;
     private Material recyclableMaterial;
     private Material foodMaterial;
@@ -56,6 +80,7 @@ public class GameSessionManager : MonoBehaviour
         {
             scoreManager.ResetScore();
             scoreManager.FeedbackRaised += OnFeedbackRaised;
+            scoreManager.StarEarned += OnStarEarned;
         }
 
         StartRound();
@@ -66,6 +91,7 @@ public class GameSessionManager : MonoBehaviour
         if (scoreManager != null)
         {
             scoreManager.FeedbackRaised -= OnFeedbackRaised;
+            scoreManager.StarEarned -= OnStarEarned;
         }
 
         if (Instance == this)
@@ -88,14 +114,25 @@ public class GameSessionManager : MonoBehaviour
         if (feedbackText != null && feedbackText.gameObject.activeSelf && Time.time >= feedbackClearTime)
         {
             feedbackText.gameObject.SetActive(false);
+            feedbackText.transform.localScale = Vector3.one;
         }
 
+        UpdateFeedbackPulse();
+        UpdateMistakeAlert();
+        UpdateStarCelebration();
         UpdateDashboard();
     }
 
     public void ShowFeedback(string message, bool positive)
     {
         OnFeedbackRaised(message, positive);
+    }
+
+    public void PlaySortCelebration(Vector3 position)
+    {
+        ParticleSystem celebration = CreateCelebrationParticles(position);
+        celebration.Play();
+        Destroy(celebration.gameObject, 1.5f);
     }
 
     private void StartRound()
@@ -113,9 +150,11 @@ public class GameSessionManager : MonoBehaviour
 
         int score = scoreManager != null ? scoreManager.score : 0;
         int mistakes = scoreManager != null ? scoreManager.mistakes : 0;
+        int stars = scoreManager != null ? scoreManager.stars : 0;
+        int bestStreak = scoreManager != null ? scoreManager.bestStreak : 0;
         int attempts = Mathf.Max(1, score + mistakes);
         int accuracy = Mathf.RoundToInt((score / (float)attempts) * 100f);
-        RoundResultStore.Save(score, mistakes, accuracy);
+        RoundResultStore.Save(score, mistakes, accuracy, stars, bestStreak);
 
         SceneManager.LoadScene(completeSceneName);
     }
@@ -138,20 +177,380 @@ public class GameSessionManager : MonoBehaviour
 
     private void OnFeedbackRaised(string message, bool positive)
     {
+        if (!positive)
+        {
+            ShowMistakeAlert(message);
+
+            if (feedbackAudio != null)
+            {
+                feedbackAudio.PlayOneShot(errorClip, 0.42f);
+            }
+
+            return;
+        }
+
         if (feedbackText == null)
         {
             return;
         }
 
         feedbackText.text = message;
-        feedbackText.color = positive ? new Color(0.35f, 1f, 0.45f) : new Color(1f, 0.35f, 0.25f);
+        feedbackText.color = new Color(0.35f, 1f, 0.45f);
         feedbackText.gameObject.SetActive(true);
-        feedbackClearTime = Time.time + 1.8f;
+        feedbackText.transform.localScale = Vector3.one;
+        feedbackClearTime = Time.time + 2.1f;
+        feedbackPulseEndTime = Time.time + FeedbackPulseSeconds;
 
         if (feedbackAudio != null)
         {
-            feedbackAudio.PlayOneShot(positive ? successClip : errorClip, 0.35f);
+            feedbackAudio.PlayOneShot(successClip, 0.35f);
         }
+    }
+
+    private void OnStarEarned(int starCount)
+    {
+        EnsureStarCelebration();
+        if (starCelebrationAnchor == null || starCelebrationText == null || starConfetti == null)
+        {
+            return;
+        }
+
+        starCelebrationText.text = $"Star earned!\n{starCount}/3 stars";
+        starCelebrationAnchor.gameObject.SetActive(true);
+        PositionStarCelebration();
+        starCelebrationAnchor.localScale = Vector3.one;
+        starCelebrationClearTime = Time.time + StarCelebrationSeconds;
+        starCelebrationPulseEndTime = Time.time + StarCelebrationPulseSeconds;
+
+        starConfetti.Clear(true);
+        starConfetti.Play(true);
+
+        if (feedbackAudio != null)
+        {
+            feedbackAudio.PlayOneShot(starClip, 0.52f);
+        }
+    }
+
+    private void EnsureStarCelebration()
+    {
+        Camera camera = Camera.main;
+        if (camera == null || starCelebrationText != null)
+        {
+            return;
+        }
+
+        GameObject anchor = new GameObject("StarCelebration");
+        starCelebrationAnchor = anchor.transform;
+        starCelebrationAnchor.SetParent(camera.transform, false);
+
+        GameObject textObject = new GameObject("StarCelebrationText");
+        textObject.transform.SetParent(starCelebrationAnchor, false);
+        textObject.transform.localPosition = new Vector3(0f, 0.12f, 0f);
+        textObject.transform.localRotation = Quaternion.identity;
+
+        starCelebrationText = textObject.AddComponent<TextMesh>();
+        starCelebrationText.alignment = TextAlignment.Center;
+        starCelebrationText.anchor = TextAnchor.MiddleCenter;
+        starCelebrationText.characterSize = StarCelebrationTextSize;
+        starCelebrationText.fontSize = 72;
+        starCelebrationText.fontStyle = FontStyle.Bold;
+        starCelebrationText.color = new Color(1f, 0.95f, 0.2f);
+        starCelebrationText.richText = false;
+
+        MeshRenderer textRenderer = textObject.GetComponent<MeshRenderer>();
+        textRenderer.sharedMaterial = CreateOverlayTextMaterial(starCelebrationText.font, 5010);
+        textRenderer.sortingOrder = 5010;
+
+        starConfetti = CreateStarConfetti(starCelebrationAnchor);
+        starCelebrationAnchor.gameObject.SetActive(false);
+    }
+
+    private ParticleSystem CreateStarConfetti(Transform parent)
+    {
+        GameObject confettiObject = new GameObject("StarConfetti");
+        confettiObject.transform.SetParent(parent, false);
+        confettiObject.transform.localPosition = new Vector3(0f, 0f, 0.05f);
+        confettiObject.transform.localRotation = Quaternion.identity;
+
+        ParticleSystem particles = confettiObject.AddComponent<ParticleSystem>();
+        ParticleSystem.MainModule main = particles.main;
+        main.duration = 1.4f;
+        main.loop = false;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.75f, 1.35f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.25f, 1.25f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.018f, 0.05f);
+        main.startColor = new ParticleSystem.MinMaxGradient(
+            new Color(1f, 0.95f, 0.2f),
+            new Color(0.25f, 1f, 0.65f));
+        main.simulationSpace = ParticleSystemSimulationSpace.Local;
+        main.playOnAwake = false;
+
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 95) });
+
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Rectangle;
+        shape.scale = new Vector3(0.55f, 0.18f, 0.01f);
+
+        ParticleSystem.VelocityOverLifetimeModule velocity = particles.velocityOverLifetime;
+        velocity.enabled = true;
+        velocity.space = ParticleSystemSimulationSpace.Local;
+        velocity.x = new ParticleSystem.MinMaxCurve(-0.45f, 0.45f);
+        velocity.y = new ParticleSystem.MinMaxCurve(-0.45f, 0.7f);
+        velocity.z = new ParticleSystem.MinMaxCurve(-0.05f, 0.05f);
+
+        ParticleSystem.RotationOverLifetimeModule rotation = particles.rotationOverLifetime;
+        rotation.enabled = true;
+        rotation.z = new ParticleSystem.MinMaxCurve(-360f, 360f);
+
+        ParticleSystemRenderer renderer = particles.GetComponent<ParticleSystemRenderer>();
+        renderer.renderMode = ParticleSystemRenderMode.Billboard;
+        renderer.sortingOrder = 5005;
+        renderer.material = CreateParticleOverlayMaterial();
+        return particles;
+    }
+
+    private void UpdateStarCelebration()
+    {
+        if (starCelebrationAnchor == null || !starCelebrationAnchor.gameObject.activeSelf)
+        {
+            return;
+        }
+
+        PositionStarCelebration();
+
+        if (Time.time >= starCelebrationClearTime)
+        {
+            starCelebrationAnchor.gameObject.SetActive(false);
+            starCelebrationAnchor.localScale = Vector3.one;
+            return;
+        }
+
+        float remaining = Mathf.Clamp01((starCelebrationPulseEndTime - Time.time) / StarCelebrationPulseSeconds);
+        float pulse = Mathf.Sin(remaining * Mathf.PI * 6f) * 0.12f * remaining;
+        starCelebrationAnchor.localScale = Vector3.one * (1f + pulse);
+    }
+
+    private void PositionStarCelebration()
+    {
+        Camera camera = Camera.main;
+        if (camera == null || starCelebrationAnchor == null)
+        {
+            return;
+        }
+
+        if (starCelebrationAnchor.parent != camera.transform)
+        {
+            starCelebrationAnchor.SetParent(camera.transform, false);
+        }
+
+        starCelebrationAnchor.localPosition = new Vector3(0f, 0.08f, Mathf.Max(camera.nearClipPlane + 0.14f, StarCelebrationDistance));
+        starCelebrationAnchor.localRotation = Quaternion.identity;
+    }
+
+    private void ShowMistakeAlert(string message)
+    {
+        EnsureMistakeAlert();
+        if (mistakeAlertTitleText == null || mistakeAlertActionText == null || mistakeAlertAnchor == null)
+        {
+            return;
+        }
+
+        SetMistakeAlertText(message);
+        mistakeAlertAnchor.gameObject.SetActive(true);
+        PositionMistakeAlert();
+        mistakeAlertAnchor.localScale = Vector3.one;
+        mistakeAlertClearTime = Time.time + MistakeAlertSeconds;
+        mistakeAlertPulseEndTime = Time.time + MistakeAlertPulseSeconds;
+    }
+
+    private void SetMistakeAlertText(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            mistakeAlertTitleText.text = "Try again";
+            mistakeAlertActionText.text = "Match the bin";
+            return;
+        }
+
+        if (message.Contains("Wash"))
+        {
+            mistakeAlertTitleText.text = "Needs a wash";
+            mistakeAlertActionText.text = "Use sink first";
+            return;
+        }
+
+        const string tryPrefix = "Try the ";
+        const string binSuffix = " bin";
+        if (message.StartsWith(tryPrefix) && message.EndsWith(binSuffix))
+        {
+            string binName = message.Substring(tryPrefix.Length, message.Length - tryPrefix.Length - binSuffix.Length);
+            mistakeAlertTitleText.text = "Wrong bin";
+            mistakeAlertActionText.text = $"Use {binName} bin";
+            return;
+        }
+
+        mistakeAlertTitleText.text = "Oops";
+        mistakeAlertActionText.text = message;
+    }
+
+    private void EnsureMistakeAlert()
+    {
+        Camera camera = Camera.main;
+        if (camera == null || mistakeAlertTitleText != null)
+        {
+            return;
+        }
+
+        GameObject anchor = new GameObject("MistakeAlert");
+        mistakeAlertAnchor = anchor.transform;
+        mistakeAlertAnchor.SetParent(camera.transform, false);
+
+        GameObject panel = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        panel.name = "MistakeAlertPanel";
+        panel.transform.SetParent(mistakeAlertAnchor, false);
+        panel.transform.localPosition = new Vector3(0f, 0f, 0.015f);
+        panel.transform.localRotation = Quaternion.identity;
+        panel.transform.localScale = MistakeAlertPanelScale;
+        mistakeAlertPanelTransform = panel.transform;
+
+        Collider panelCollider = panel.GetComponent<Collider>();
+        if (panelCollider != null)
+        {
+            Destroy(panelCollider);
+        }
+
+        Renderer panelRenderer = panel.GetComponent<Renderer>();
+        panelRenderer.sharedMaterial = CreateOverlayMaterial("Runtime_Mistake_Alert", new Color(1f, 0.22f, 0.08f, 0.96f), 4990);
+        panelRenderer.sortingOrder = 4990;
+
+        mistakeAlertTitleText = CreateMistakeAlertText("MistakeAlertTitle", new Vector3(0f, 0.045f, 0f), MistakeAlertTitleSize, 62, FontStyle.Bold);
+        mistakeAlertActionText = CreateMistakeAlertText("MistakeAlertAction", new Vector3(0f, -0.045f, 0f), MistakeAlertActionSize, 56, FontStyle.Normal);
+
+        mistakeAlertAnchor.gameObject.SetActive(false);
+    }
+
+    private TextMesh CreateMistakeAlertText(string objectName, Vector3 localPosition, float characterSize, int fontSize, FontStyle fontStyle)
+    {
+        GameObject textObject = new GameObject(objectName);
+        textObject.transform.SetParent(mistakeAlertAnchor, false);
+        textObject.transform.localPosition = localPosition;
+        textObject.transform.localRotation = Quaternion.identity;
+
+        TextMesh text = textObject.AddComponent<TextMesh>();
+        text.alignment = TextAlignment.Center;
+        text.anchor = TextAnchor.MiddleCenter;
+        text.characterSize = characterSize;
+        text.fontSize = fontSize;
+        text.fontStyle = fontStyle;
+        text.color = Color.white;
+        text.richText = false;
+
+        MeshRenderer textRenderer = textObject.GetComponent<MeshRenderer>();
+        textRenderer.sharedMaterial = CreateOverlayTextMaterial(text.font, 5000);
+        textRenderer.sortingOrder = 5000;
+        return text;
+    }
+
+    private void UpdateMistakeAlert()
+    {
+        if (mistakeAlertAnchor == null || !mistakeAlertAnchor.gameObject.activeSelf)
+        {
+            return;
+        }
+
+        PositionMistakeAlert();
+
+        if (Time.time >= mistakeAlertClearTime)
+        {
+            mistakeAlertAnchor.gameObject.SetActive(false);
+            mistakeAlertAnchor.localScale = Vector3.one;
+            return;
+        }
+
+        float remaining = Mathf.Clamp01((mistakeAlertPulseEndTime - Time.time) / MistakeAlertPulseSeconds);
+        float pulse = Mathf.Sin(remaining * Mathf.PI * 5f) * 0.1f * remaining;
+        mistakeAlertAnchor.localScale = Vector3.one * (1f + pulse);
+    }
+
+    private void PositionMistakeAlert()
+    {
+        Camera camera = Camera.main;
+        if (camera == null || mistakeAlertAnchor == null)
+        {
+            return;
+        }
+
+        if (mistakeAlertAnchor.parent != camera.transform)
+        {
+            mistakeAlertAnchor.SetParent(camera.transform, false);
+        }
+
+        mistakeAlertAnchor.localPosition = new Vector3(0f, -0.12f, Mathf.Max(camera.nearClipPlane + 0.08f, MistakeAlertDistance));
+        mistakeAlertAnchor.localRotation = Quaternion.identity;
+    }
+
+    private Material CreateOverlayMaterial(string materialName, Color color, int renderQueue)
+    {
+        Shader shader = Shader.Find("Hidden/Internal-Colored");
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Color");
+        }
+
+        Material material = new Material(shader);
+        material.name = materialName;
+        material.color = color;
+        material.renderQueue = renderQueue;
+        material.SetInt("_ZWrite", 0);
+        material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        return material;
+    }
+
+    private Material CreateOverlayTextMaterial(Font font, int renderQueue)
+    {
+        Material material = new Material(font.material);
+        material.name = "Runtime_Mistake_Alert_Text";
+        material.renderQueue = renderQueue;
+        material.SetInt("_ZWrite", 0);
+        material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+        return material;
+    }
+
+    private Material CreateParticleOverlayMaterial()
+    {
+        Shader shader = Shader.Find("Particles/Standard Unlit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default");
+        }
+
+        Material material = new Material(shader);
+        material.name = "Runtime_Star_Confetti";
+        material.renderQueue = 5005;
+        material.SetInt("_ZWrite", 0);
+        material.SetInt("_ZTest", (int)UnityEngine.Rendering.CompareFunction.Always);
+        return material;
+    }
+
+    private void UpdateFeedbackPulse()
+    {
+        if (feedbackText == null || !feedbackText.gameObject.activeSelf || Time.time >= feedbackPulseEndTime)
+        {
+            if (feedbackText != null)
+            {
+                feedbackText.transform.localScale = Vector3.one;
+            }
+
+            return;
+        }
+
+        float remaining = Mathf.Clamp01((feedbackPulseEndTime - Time.time) / FeedbackPulseSeconds);
+        float pulse = Mathf.Sin(remaining * Mathf.PI * 4f) * 0.08f * remaining;
+        feedbackText.transform.localScale = Vector3.one * (1f + pulse);
     }
 
     private void UpdateDashboard()
@@ -163,13 +562,15 @@ public class GameSessionManager : MonoBehaviour
 
         int score = scoreManager != null ? scoreManager.score : 0;
         int mistakes = scoreManager != null ? scoreManager.mistakes : 0;
+        int streak = scoreManager != null ? scoreManager.streak : 0;
+        int stars = scoreManager != null ? scoreManager.stars : 0;
         int seconds = Mathf.CeilToInt(remainingSeconds);
         int minutes = Mathf.Max(0, seconds / 60);
         int secondPart = Mathf.Max(0, seconds % 60);
 
         dashboardText.text =
-            $"Time {minutes:00}:{secondPart:00}   Score {score}\n" +
-            $"Mistakes {mistakes}";
+            $"Time {minutes:00}:{secondPart:00}   Items rescued {score}\n" +
+            $"Stars {stars}/3   Streak {streak}   Mistakes {mistakes}";
     }
 
     private void EnsureWorldUi()
@@ -225,6 +626,7 @@ public class GameSessionManager : MonoBehaviour
         feedbackAudio.spatialBlend = 0f;
         successClip = CreateToneClip("SortSuccessTone", 880f, 0.12f);
         errorClip = CreateToneClip("SortErrorTone", 220f, 0.18f);
+        starClip = CreateStarClip();
     }
 
     private AudioClip CreateToneClip(string clipName, float frequency, float duration)
@@ -243,6 +645,60 @@ public class GameSessionManager : MonoBehaviour
         AudioClip clip = AudioClip.Create(clipName, sampleCount, 1, sampleRate, false);
         clip.SetData(samples, 0);
         return clip;
+    }
+
+    private AudioClip CreateStarClip()
+    {
+        const int sampleRate = 24000;
+        const float duration = 0.36f;
+        int sampleCount = Mathf.CeilToInt(sampleRate * duration);
+        float[] samples = new float[sampleCount];
+        float[] notes = { 660f, 880f, 1320f };
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float time = i / (float)sampleRate;
+            int noteIndex = Mathf.Min(notes.Length - 1, Mathf.FloorToInt((time / duration) * notes.Length));
+            float localTime = time - ((duration / notes.Length) * noteIndex);
+            float fade = 1f - (time / duration);
+            samples[i] = Mathf.Sin(2f * Mathf.PI * notes[noteIndex] * localTime) * fade * 0.42f;
+        }
+
+        AudioClip clip = AudioClip.Create("StarEarnedTone", sampleCount, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private ParticleSystem CreateCelebrationParticles(Vector3 position)
+    {
+        GameObject particleObject = new GameObject("SortCelebration");
+        particleObject.transform.position = position + Vector3.up * 0.85f;
+
+        ParticleSystem particles = particleObject.AddComponent<ParticleSystem>();
+        ParticleSystem.MainModule main = particles.main;
+        main.duration = 0.45f;
+        main.loop = false;
+        main.startLifetime = 0.75f;
+        main.startSpeed = 1.8f;
+        main.startSize = 0.08f;
+        main.startColor = new ParticleSystem.MinMaxGradient(
+            new Color(1f, 0.95f, 0.25f),
+            new Color(0.35f, 1f, 0.55f));
+
+        ParticleSystem.EmissionModule emission = particles.emission;
+        emission.rateOverTime = 0f;
+        emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 18) });
+
+        ParticleSystem.ShapeModule shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.25f;
+
+        ParticleSystem.VelocityOverLifetimeModule velocity = particles.velocityOverLifetime;
+        velocity.enabled = true;
+        velocity.space = ParticleSystemSimulationSpace.World;
+        velocity.y = new ParticleSystem.MinMaxCurve(0.7f, 1.5f);
+
+        return particles;
     }
 
     private void EnsureDemoContent()

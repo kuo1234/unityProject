@@ -8,9 +8,9 @@ public class BinValidator : MonoBehaviour
     public Material acceptedFlashMaterial;
     public Material rejectedFlashMaterial;
 
-    private const float BounceForce = 6f;
-    private const float UpwardForce = 4f;
     private const float FlashSeconds = 0.35f;
+    private const float FallbackRespawnDistance = 1.8f;
+    private const float FallbackRespawnHeight = 0.7f;
 
     private Material originalMaterial;
     private Coroutine flashRoutine;
@@ -49,6 +49,11 @@ public class BinValidator : MonoBehaviour
         if (trashItem.itemType == targetCategory && !trashItem.isDirty)
         {
             FlashBin(true);
+            if (GameSessionManager.Instance != null)
+            {
+                GameSessionManager.Instance.PlaySortCelebration(transform.position);
+            }
+
             Destroy(trashItem.gameObject);
             if (ScoreManager.Instance != null)
             {
@@ -59,18 +64,11 @@ public class BinValidator : MonoBehaviour
             return;
         }
 
-        Rigidbody itemRigidbody = trashItem.GetComponent<Rigidbody>();
-        if (itemRigidbody != null)
-        {
-            Vector3 outwardDirection = (trashItem.transform.position - transform.position).normalized;
-            Vector3 bounceDirection = (outwardDirection * BounceForce) + (Vector3.up * UpwardForce);
-            itemRigidbody.AddForce(bounceDirection, ForceMode.Impulse);
-        }
-
+        RespawnRejectedTrash(trashItem);
         FlashBin(false);
         if (ScoreManager.Instance != null)
         {
-            string reason = trashItem.isDirty ? "Wash dirty items first" : "Wrong bin";
+            string reason = trashItem.isDirty ? "Wash dirty items first" : $"Wrong bin: try {trashItem.itemType}";
             ScoreManager.Instance.AddSortingMistake(reason);
         }
 
@@ -79,6 +77,65 @@ public class BinValidator : MonoBehaviour
 #else
         Debug.LogWarning("OVRInput is not available. Install or enable the Meta XR SDK to use haptic error feedback.");
 #endif
+    }
+
+    private void RespawnRejectedTrash(TrashItem trashItem)
+    {
+        if (trashItem == null)
+        {
+            return;
+        }
+
+        Rigidbody itemRigidbody = trashItem.GetComponent<Rigidbody>();
+        Transform respawnPoint = FindRespawnPoint();
+        Vector3 respawnPosition;
+        Quaternion respawnRotation;
+
+        if (respawnPoint != null)
+        {
+            respawnPosition = respawnPoint.position;
+            respawnRotation = respawnPoint.rotation;
+        }
+        else
+        {
+            Vector3 outwardDirection = trashItem.transform.position - transform.position;
+            outwardDirection.y = 0f;
+
+            if (outwardDirection.sqrMagnitude <= 0.001f)
+            {
+                outwardDirection = -transform.forward;
+            }
+
+            respawnPosition = transform.position +
+                (outwardDirection.normalized * FallbackRespawnDistance) +
+                (Vector3.up * FallbackRespawnHeight);
+            respawnRotation = trashItem.transform.rotation;
+        }
+
+        if (itemRigidbody != null)
+        {
+            itemRigidbody.linearVelocity = Vector3.zero;
+            itemRigidbody.angularVelocity = Vector3.zero;
+            itemRigidbody.position = respawnPosition;
+            itemRigidbody.rotation = respawnRotation;
+        }
+        else
+        {
+            trashItem.transform.SetPositionAndRotation(respawnPosition, respawnRotation);
+        }
+    }
+
+    private Transform FindRespawnPoint()
+    {
+        foreach (TrashSpawner spawner in FindObjectsByType<TrashSpawner>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (spawner != null && spawner.spawnPoint != null)
+            {
+                return spawner.spawnPoint;
+            }
+        }
+
+        return null;
     }
 
     private void FlashBin(bool accepted)
