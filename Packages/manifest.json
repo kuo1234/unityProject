@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.gamebooom.unity.mcp": "https://github.com/FunplayAI/funplay-unity-mcp.git",
     "com.meta.xr.mrutilitykit": "201.0.0",
     "com.meta.xr.sdk.core": "201.0.0",
     "com.meta.xr.sdk.interaction": "201.0.0",
@@ -50,7 +51,8 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
-    "com.unity.modules.xr": "1.0.0"
+    "com.unity.modules.xr": "1.0.0",
+    "com.ivanmurzak.unity.mcp": "0.75.1"
   },
   "scopedRegistries": [
     {

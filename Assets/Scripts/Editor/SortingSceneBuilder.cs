@@ -5,7 +5,7 @@ public static class SortingSceneBuilder
 {
     private const string GeneratedFolder = "Assets/GeneratedSortingGame";
     private const string MaterialsFolder = GeneratedFolder + "/Materials";
-    private const string PrefabsFolder = GeneratedFolder + "/Prefabs";
+    private const string PrefabsFolder = "Assets/Prefabs/ActiveTrash";
     private const float DashboardTextSize = 0.07f;
     private const float FeedbackTextSize = 0.075f;
     private const float BinLabelTextSize = 0.075f;
@@ -62,7 +62,8 @@ public static class SortingSceneBuilder
     {
         EnsureFolder("Assets", "GeneratedSortingGame");
         EnsureFolder(GeneratedFolder, "Materials");
-        EnsureFolder(GeneratedFolder, "Prefabs");
+        EnsureFolder("Assets", "Prefabs");
+        EnsureFolder("Assets/Prefabs", "ActiveTrash");
     }
 
     private static void EnsureFolder(string parentFolder, string newFolder)
@@ -163,13 +164,16 @@ public static class SortingSceneBuilder
     {
         return new[]
         {
-            CreateTrashPrefab("Trash_General", PrimitiveType.Capsule, TrashCategory.General, false, generalMaterial),
-            CreateTrashPrefab("Trash_Plastic", PrimitiveType.Sphere, TrashCategory.Recyclable, false, recyclableMaterial),
-            CreateTrashPrefab("Trash_Paper", PrimitiveType.Cube, TrashCategory.Recyclable, false, recyclableMaterial),
-            CreateTrashPrefab("Trash_RawFood", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
-            CreateTrashPrefab("Trash_CookedFood", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
-            CreateTrashPrefab("Trash_DirtyPlastic", PrimitiveType.Sphere, TrashCategory.Recyclable, true, dirtyMaterial),
-            CreateTrashPrefab("Trash_DirtyPaper", PrimitiveType.Cube, TrashCategory.Recyclable, true, dirtyMaterial)
+            CreateTrashPrefab("Trash_General_Template", PrimitiveType.Capsule, TrashCategory.General, false, generalMaterial),
+            CreateTrashPrefab("Trash_Plastic_Template", PrimitiveType.Sphere, TrashCategory.Recyclable, false, recyclableMaterial),
+            CreateTrashPrefab("Trash_Paper_Template", PrimitiveType.Cube, TrashCategory.Recyclable, false, recyclableMaterial),
+            CreateTrashPrefab("Trash_RawFood_Template", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
+            CreateTrashPrefab("Trash_CookedFood_Template", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
+            CreateTrashPrefab("Trash_DirtyPlastic_Template", PrimitiveType.Sphere, TrashCategory.Recyclable, true, dirtyMaterial),
+            CreateTrashPrefab("Trash_DirtyPaper_Template", PrimitiveType.Cube, TrashCategory.Recyclable, true, dirtyMaterial),
+            CreateTrashPrefab("Trash_FoodWaste_Organic_Template", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
+            CreateTrashPrefab("Trash_FoodWaste_BananaPeel_Template", PrimitiveType.Capsule, TrashCategory.Food, false, foodMaterial),
+            CreateTrashPrefab("Trash_FoodWaste_Broccoli_Template", PrimitiveType.Sphere, TrashCategory.Food, false, foodMaterial)
         };
     }
 

@@ -22,6 +22,7 @@ public class PlayerTrashInteractor : MonoBehaviour
     private Transform targetMarker;
     private TrashItem targetedTrashItem;
     private TrashItem previousTargetedTrashItem;
+    private TrashItem lastGuidanceTargetedTrashItem;
     private Vector3 targetPoint;
     private float hoverTimer;
     private bool previousPickupButtonPressed;
@@ -43,6 +44,7 @@ public class PlayerTrashInteractor : MonoBehaviour
 
         EnsureVisuals();
         UpdateTargeting();
+        NotifyTargetedTrashForGuidance();
         if (autoPickupOnHover)
         {
             UpdateHoverPickup();
@@ -68,6 +70,32 @@ public class PlayerTrashInteractor : MonoBehaviour
         UpdateVisuals();
     }
 
+    private void NotifyTargetedTrashForGuidance()
+    {
+        if (heldRigidbody != null)
+        {
+            lastGuidanceTargetedTrashItem = null;
+            return;
+        }
+
+        if (targetedTrashItem == null)
+        {
+            lastGuidanceTargetedTrashItem = null;
+            return;
+        }
+
+        if (targetedTrashItem == lastGuidanceTargetedTrashItem)
+        {
+            return;
+        }
+
+        lastGuidanceTargetedTrashItem = targetedTrashItem;
+        if (GameSessionManager.Instance != null)
+        {
+            GameSessionManager.Instance.NotifyPlayerAction(PlayerGuidanceAction.TargetedTrash, targetedTrashItem);
+        }
+    }
+
     private void FixedUpdate()
     {
         if (heldRigidbody == null || holdPoint == null)
@@ -83,6 +111,7 @@ public class PlayerTrashInteractor : MonoBehaviour
     {
         if (targetedTrashItem == null)
         {
+            lastGuidanceTargetedTrashItem = null;
             return;
         }
 
@@ -94,6 +123,11 @@ public class PlayerTrashInteractor : MonoBehaviour
 
         heldRigidbody.useGravity = false;
         heldRigidbody.angularVelocity = Vector3.zero;
+
+        if (GameSessionManager.Instance != null)
+        {
+            GameSessionManager.Instance.NotifyPlayerAction(PlayerGuidanceAction.PickedUpTrash, targetedTrashItem);
+        }
     }
 
     private void DropHeldItem(bool shouldThrow)

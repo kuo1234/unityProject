@@ -2,6 +2,20 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public struct LearnCardInfo
+{
+    public string title;
+    public string body;
+    public Color accentColor;
+
+    public LearnCardInfo(string title, string body, Color accentColor)
+    {
+        this.title = title;
+        this.body = body;
+        this.accentColor = accentColor;
+    }
+}
+
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
@@ -21,16 +35,24 @@ public class ScoreManager : MonoBehaviour
     {
         "Nice sort!",
         "Great job!",
-        "Clean planet point!",
-        "Super recycling!",
-        "You helped the Earth!"
+        "You helped the Earth!",
+        "Good matching!",
+        "Keep going!"
     };
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            if (Application.isPlaying)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                DestroyImmediate(gameObject);
+            }
+
             return;
         }
 
@@ -42,13 +64,13 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    public void AddSortedItem()
+    public void AddSortedItem(TrashItem sortedItem = null)
     {
         score++;
         streak++;
         bestStreak = Mathf.Max(bestStreak, streak);
         UpdateStars();
-        RaiseFeedback(GetPositiveMessage(), true);
+        RaiseFeedback(GetPositiveMessage(sortedItem), true);
         ScoreChanged?.Invoke(score, mistakes);
     }
 
@@ -56,7 +78,6 @@ public class ScoreManager : MonoBehaviour
     {
         mistakes++;
         streak = 0;
-        UpdateStars();
         RaiseFeedback(GetMistakeMessage(reason), false);
         ScoreChanged?.Invoke(score, mistakes);
     }
@@ -105,16 +126,43 @@ public class ScoreManager : MonoBehaviour
         }
     }
 
-    private string GetPositiveMessage()
+    public static string GetChildCategoryName(TrashCategory category)
+    {
+        return category switch
+        {
+            TrashCategory.General => "general",
+            TrashCategory.Recyclable => "recycle",
+            TrashCategory.Food => "food",
+            _ => "matching"
+        };
+    }
+
+    public static string GetChildBinName(TrashCategory category)
+    {
+        return category switch
+        {
+            TrashCategory.General => "green general",
+            TrashCategory.Recyclable => "blue recycle",
+            TrashCategory.Food => "orange food",
+            _ => "matching"
+        };
+    }
+
+    private string GetPositiveMessage(TrashItem sortedItem)
     {
         if (streak > 0 && streak % 5 == 0)
         {
-            return "Super sorter!";
+            return "Super sorter! You are helping Earth.";
         }
 
         if (streak > 0 && streak % 3 == 0)
         {
-            return $"{streak} in a row!";
+            return $"{streak} in a row! Keep cleaning.";
+        }
+
+        if (sortedItem != null)
+        {
+            return GetEducationalSuccessMessage(sortedItem);
         }
 
         return PositiveMessages[score % PositiveMessages.Length];
@@ -129,14 +177,144 @@ public class ScoreManager : MonoBehaviour
 
         if (reason.Contains("Wash"))
         {
-            return "Wash it first";
+            return "Wash first, then sort it.";
         }
 
         if (reason.StartsWith("Wrong bin: try ", StringComparison.OrdinalIgnoreCase))
         {
-            return "Try the " + reason.Substring("Wrong bin: try ".Length) + " bin";
+            return "Try the " + reason.Substring("Wrong bin: try ".Length) + " bin.";
         }
 
         return reason;
+    }
+
+    private static string GetEducationalSuccessMessage(TrashItem sortedItem)
+    {
+        if (TryGetLearnCardInfo(sortedItem, out LearnCardInfo info))
+        {
+            return info.title.Replace(" -> ", " goes in ") + ". " + info.body;
+        }
+
+        return "Nice sort! You helped the Earth.";
+    }
+
+    public static bool TryGetLearnCardInfo(TrashItem sortedItem, out LearnCardInfo info)
+    {
+        info = default;
+        if (sortedItem == null)
+        {
+            return false;
+        }
+
+        string itemName = GetFriendlyItemName(sortedItem);
+        switch (sortedItem.itemType)
+        {
+            case TrashCategory.Recyclable:
+                info = new LearnCardInfo(
+                    itemName + " -> Recycle",
+                    "It can be used again.",
+                    new Color(0.1f, 0.45f, 0.95f));
+                return true;
+            case TrashCategory.Food:
+                info = new LearnCardInfo(
+                    itemName + " -> Food Waste",
+                    "It can become compost.",
+                    new Color(0.95f, 0.48f, 0.12f));
+                return true;
+            case TrashCategory.General:
+                info = new LearnCardInfo(
+                    itemName + " -> General Trash",
+                    "It cannot be recycled.",
+                    new Color(0.2f, 0.75f, 0.35f));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static string GetFriendlyItemName(TrashItem item)
+    {
+        if (item == null)
+        {
+            return "That";
+        }
+
+        string name = item.gameObject.name.ToLowerInvariant();
+        if (name.Contains("bento"))
+        {
+            return "Bento box";
+        }
+
+        if (name.Contains("crumpled") || name.Contains("paper"))
+        {
+            return "Crumpled paper";
+        }
+
+        if (name.Contains("fish"))
+        {
+            return "Fish bone";
+        }
+
+        if (name.Contains("chicken") || name.Contains("humerus"))
+        {
+            return "Chicken bone";
+        }
+
+        if (name.Contains("water") && name.Contains("bottle"))
+        {
+            return "Water bottle";
+        }
+
+        if (name.Contains("plastic") && name.Contains("bottle"))
+        {
+            return "Plastic bottle";
+        }
+
+        if (name.Contains("banana"))
+        {
+            return "Banana peel";
+        }
+
+        if (name.Contains("broccoli"))
+        {
+            return "Broccoli";
+        }
+
+        if (name.Contains("donut"))
+        {
+            return "Food scrap";
+        }
+
+        if (name.Contains("carton") || name.Contains("tetrapak"))
+        {
+            return "Carton";
+        }
+
+        if (name.Contains("can"))
+        {
+            return "Can";
+        }
+
+        if (name.Contains("cardboard"))
+        {
+            return "Cardboard";
+        }
+
+        if (name.Contains("paperbag") || name.Contains("paper bag"))
+        {
+            return "Paper bag";
+        }
+
+        if (name.Contains("toiletpaper"))
+        {
+            return "Toilet paper";
+        }
+
+        if (name.Contains("snack"))
+        {
+            return "Snack pack";
+        }
+
+        return "That";
     }
 }

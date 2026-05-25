@@ -111,3 +111,11 @@ InitTestScene*.unity*
 # Packages/packages-lock.json
 # ProjectSettings/
 # ==============================
+
+# ==============================
+# MCP Package
+# ==============================
+[Mm]cp/
+.mcp/
+.agents/
+.codex/

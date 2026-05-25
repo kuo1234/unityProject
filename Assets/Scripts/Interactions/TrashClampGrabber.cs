@@ -176,6 +176,12 @@ public class TrashClampGrabber : MonoBehaviour
 
         SetHeldCollidersTriggerState(true);
         PulseHaptics(grabHapticFrequency, grabHapticAmplitude, grabHapticDuration);
+
+        TrashItem grabbedItem = heldRigidbody.GetComponent<TrashItem>();
+        if (grabbedItem != null && GameSessionManager.Instance != null)
+        {
+            GameSessionManager.Instance.NotifyPlayerAction(PlayerGuidanceAction.PickedUpTrash, grabbedItem);
+        }
     }
 
     private void ReleaseHeldItem()

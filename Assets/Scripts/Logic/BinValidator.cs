@@ -14,6 +14,9 @@ public class BinValidator : MonoBehaviour
 
     private Material originalMaterial;
     private Coroutine flashRoutine;
+#if OCULUS_INTEGRATION || META_XR_CORE_SDK || OVRPLUGIN_PRESENT
+    private Coroutine hapticRoutine;
+#endif
 
     private void Awake()
     {
@@ -54,12 +57,17 @@ public class BinValidator : MonoBehaviour
                 GameSessionManager.Instance.PlaySortCelebration(transform.position);
             }
 
-            Destroy(trashItem.gameObject);
             if (ScoreManager.Instance != null)
             {
-                ScoreManager.Instance.AddSortedItem();
+                ScoreManager.Instance.AddSortedItem(trashItem);
             }
 
+            if (GameSessionManager.Instance != null)
+            {
+                GameSessionManager.Instance.NotifyPlayerAction(PlayerGuidanceAction.SortedCorrectly, trashItem);
+            }
+
+            Destroy(trashItem.gameObject);
             Debug.Log("[Success] Sorted correctly");
             return;
         }
@@ -68,12 +76,19 @@ public class BinValidator : MonoBehaviour
         FlashBin(false);
         if (ScoreManager.Instance != null)
         {
-            string reason = trashItem.isDirty ? "Wash dirty items first" : $"Wrong bin: try {trashItem.itemType}";
+            string reason = trashItem.isDirty
+                ? "Wash first. Clean trash is easier to sort."
+                : $"This is {ScoreManager.GetChildCategoryName(trashItem.itemType)} trash. Try the {ScoreManager.GetChildBinName(trashItem.itemType)} bin.";
             ScoreManager.Instance.AddSortingMistake(reason);
         }
 
+        if (GameSessionManager.Instance != null)
+        {
+            GameSessionManager.Instance.NotifyPlayerAction(PlayerGuidanceAction.SortedIncorrectly, trashItem);
+        }
+
 #if OCULUS_INTEGRATION || META_XR_CORE_SDK || OVRPLUGIN_PRESENT
-        OVRInput.SetControllerVibration(1, 1, OVRInput.Controller.All);
+        PulseErrorHaptics();
 #else
         Debug.LogWarning("OVRInput is not available. Install or enable the Meta XR SDK to use haptic error feedback.");
 #endif
@@ -127,7 +142,7 @@ public class BinValidator : MonoBehaviour
 
     private Transform FindRespawnPoint()
     {
-        foreach (TrashSpawner spawner in FindObjectsByType<TrashSpawner>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        foreach (TrashSpawner spawner in FindObjectsByType<TrashSpawner>(FindObjectsInactive.Exclude))
         {
             if (spawner != null && spawner.spawnPoint != null)
             {
@@ -165,4 +180,24 @@ public class BinValidator : MonoBehaviour
 
         flashRoutine = null;
     }
+
+#if OCULUS_INTEGRATION || META_XR_CORE_SDK || OVRPLUGIN_PRESENT
+    private void PulseErrorHaptics()
+    {
+        if (hapticRoutine != null)
+        {
+            StopCoroutine(hapticRoutine);
+        }
+
+        hapticRoutine = StartCoroutine(ErrorHapticRoutine());
+    }
+
+    private IEnumerator ErrorHapticRoutine()
+    {
+        OVRInput.SetControllerVibration(0.25f, 0.3f, OVRInput.Controller.All);
+        yield return new WaitForSeconds(0.08f);
+        OVRInput.SetControllerVibration(0f, 0f, OVRInput.Controller.All);
+        hapticRoutine = null;
+    }
+#endif
 }
