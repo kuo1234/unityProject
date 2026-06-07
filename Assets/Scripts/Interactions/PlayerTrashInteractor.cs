@@ -10,7 +10,9 @@ public class PlayerTrashInteractor : MonoBehaviour
     public Transform holdPoint;
     public float pickupRange = 12f;
     public float holdForce = 18f;
-    public float throwForce = 5f;
+    public float throwVelocityMultiplier = 1.2f;
+    public float launchSpeed = 9f;
+    public float maxThrowSpeed = 22f;
     public float pointerRadius = 0.35f;
     public float aimAssistViewportRadius = 0.18f;
     public bool autoPickupOnHover = false;
@@ -24,8 +26,8 @@ public class PlayerTrashInteractor : MonoBehaviour
     private TrashItem previousTargetedTrashItem;
     private Vector3 targetPoint;
     private float hoverTimer;
-    private bool previousPickupButtonPressed;
-    private bool previousThrowButtonPressed;
+    private bool previousPickupHeld;
+    private Vector3 heldVelocity;
     private string lastInputSource = "none";
     private int detectedInputSystemControllers;
 
@@ -48,22 +50,20 @@ public class PlayerTrashInteractor : MonoBehaviour
             UpdateHoverPickup();
         }
 
-        if (WasPickupPressed())
-        {
-            if (heldRigidbody == null)
-            {
-                TryPickup();
-            }
-            else
-            {
-                DropHeldItem(false);
-            }
-        }
+        bool pickupHeld = IsPickupHeld();
 
-        if (WasThrowPressed() && heldRigidbody != null)
+        // 上升緣:開始按住 → 吸附最近瞄準的垃圾
+        if (pickupHeld && !previousPickupHeld && heldRigidbody == null)
+        {
+            TryPickup();
+        }
+        // 下降緣:放開 → 依當前揮動速度自然拋出
+        else if (!pickupHeld && previousPickupHeld && heldRigidbody != null)
         {
             DropHeldItem(true);
         }
+
+        previousPickupHeld = pickupHeld;
 
         UpdateVisuals();
     }
@@ -75,8 +75,12 @@ public class PlayerTrashInteractor : MonoBehaviour
             return;
         }
 
+        // 彈簧式追蹤:把物件拉向 holdPoint,velocity 自然反映手的移動方向與速度
         Vector3 toHoldPoint = holdPoint.position - heldRigidbody.position;
         heldRigidbody.linearVelocity = toHoldPoint * holdForce;
+
+        // 記錄放開瞬間要用的拋出速度
+        heldVelocity = heldRigidbody.linearVelocity;
     }
 
     private void TryPickup()
@@ -94,6 +98,7 @@ public class PlayerTrashInteractor : MonoBehaviour
 
         heldRigidbody.useGravity = false;
         heldRigidbody.angularVelocity = Vector3.zero;
+        heldVelocity = Vector3.zero;
     }
 
     private void DropHeldItem(bool shouldThrow)
@@ -103,10 +108,20 @@ public class PlayerTrashInteractor : MonoBehaviour
 
         droppedRigidbody.useGravity = true;
 
-        if (shouldThrow && playerCamera != null)
+        if (shouldThrow)
         {
-            droppedRigidbody.AddForce(playerCamera.transform.forward * throwForce, ForceMode.Impulse);
+            // 揮動速度(揮越快丟越遠) + 沿瞄準方向的發射力(確保穩定往前飛)
+            Vector3 throwVelocity = heldVelocity * throwVelocityMultiplier;
+            throwVelocity += GetPointerDirection() * launchSpeed;
+            if (throwVelocity.magnitude > maxThrowSpeed)
+            {
+                throwVelocity = throwVelocity.normalized * maxThrowSpeed;
+            }
+
+            droppedRigidbody.linearVelocity = throwVelocity;
         }
+
+        heldVelocity = Vector3.zero;
     }
 
     private void UpdateTargeting()
@@ -277,121 +292,27 @@ public class PlayerTrashInteractor : MonoBehaviour
         return playerCamera != null ? playerCamera.transform.forward : transform.forward;
     }
 
-    private bool WasPickupPressed()
+    // 回傳「本幀拾取鍵是否按住」(level,不是 edge)。按住=吸附,放開=拋出。
+    private bool IsPickupHeld()
     {
-        if (WasOVRPickupPressed())
+        if (OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger, OVRInput.Controller.All) ||
+            OVRInput.Get(OVRInput.Button.PrimaryHandTrigger, OVRInput.Controller.All) ||
+            OVRInput.Get(OVRInput.Button.One, OVRInput.Controller.All))
         {
-            lastInputSource = "OVR pickup";
+            lastInputSource = "OVR hold";
             return true;
         }
 
-        if (WasInputSystemPickupPressed())
+        if (IsXRButtonPressed(UnityEngine.XR.CommonUsages.triggerButton) ||
+            IsXRButtonPressed(UnityEngine.XR.CommonUsages.gripButton) ||
+            IsXRButtonPressed(UnityEngine.XR.CommonUsages.primaryButton))
         {
-            lastInputSource = "InputSystem XR pickup";
+            lastInputSource = "Unity XR hold";
             return true;
         }
 
-        bool pickupButtonPressed = IsXRButtonPressed(UnityEngine.XR.CommonUsages.triggerButton) ||
-                                   IsXRButtonPressed(UnityEngine.XR.CommonUsages.gripButton) ||
-                                   IsXRButtonPressed(UnityEngine.XR.CommonUsages.primaryButton);
-        bool pickupButtonDown = pickupButtonPressed && !previousPickupButtonPressed;
-        previousPickupButtonPressed = pickupButtonPressed;
-        if (pickupButtonDown)
-        {
-            lastInputSource = "Unity XR pickup";
-            return true;
-        }
-
-#if ENABLE_INPUT_SYSTEM
-        if (Keyboard.current != null &&
-            (Keyboard.current.pKey.wasPressedThisFrame ||
-             Keyboard.current.tKey.wasPressedThisFrame ||
-             Keyboard.current.uKey.wasPressedThisFrame ||
-             Keyboard.current.bKey.wasPressedThisFrame ||
-             Keyboard.current.digit1Key.wasPressedThisFrame ||
-             Keyboard.current.numpad4Key.wasPressedThisFrame ||
-             Keyboard.current.numpad1Key.wasPressedThisFrame))
-        {
-            lastInputSource = "keyboard pickup";
-            return true;
-        }
-#endif
-
-#if ENABLE_LEGACY_INPUT_MANAGER
-        if (Input.GetKeyDown(KeyCode.P) || Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
-        {
-            return true;
-        }
-#endif
-
-        return false;
-    }
-
-    private bool WasThrowPressed()
-    {
-        if (WasOVRThrowPressed())
-        {
-            lastInputSource = "OVR throw";
-            return true;
-        }
-
-        if (WasInputSystemThrowPressed())
-        {
-            lastInputSource = "InputSystem XR throw";
-            return true;
-        }
-
-        bool throwButtonPressed = IsXRButtonPressed(UnityEngine.XR.CommonUsages.secondaryButton) ||
-                                  IsXRButtonPressed(UnityEngine.XR.CommonUsages.primary2DAxisClick);
-        bool throwButtonDown = throwButtonPressed && !previousThrowButtonPressed;
-        previousThrowButtonPressed = throwButtonPressed;
-        if (throwButtonDown)
-        {
-            lastInputSource = "Unity XR throw";
-            return true;
-        }
-
-#if ENABLE_INPUT_SYSTEM
-        if (Keyboard.current != null &&
-            (Keyboard.current.oKey.wasPressedThisFrame ||
-             Keyboard.current.nKey.wasPressedThisFrame ||
-             Keyboard.current.iKey.wasPressedThisFrame ||
-             Keyboard.current.digit2Key.wasPressedThisFrame ||
-             Keyboard.current.numpad2Key.wasPressedThisFrame))
-        {
-            lastInputSource = "keyboard throw";
-            return true;
-        }
-#endif
-
-#if ENABLE_LEGACY_INPUT_MANAGER
-        if (Input.GetKeyDown(KeyCode.O) || Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
-        {
-            return true;
-        }
-#endif
-
-        return false;
-    }
-
-    private bool WasOVRPickupPressed()
-    {
-        return OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger, OVRInput.Controller.All) ||
-               OVRInput.GetDown(OVRInput.Button.PrimaryHandTrigger, OVRInput.Controller.All) ||
-               OVRInput.GetDown(OVRInput.Button.One, OVRInput.Controller.All);
-    }
-
-    private bool WasOVRThrowPressed()
-    {
-        return OVRInput.GetDown(OVRInput.Button.Two, OVRInput.Controller.All) ||
-               OVRInput.GetDown(OVRInput.Button.PrimaryThumbstick, OVRInput.Controller.All);
-    }
-
-    private bool WasInputSystemPickupPressed()
-    {
 #if ENABLE_INPUT_SYSTEM
         detectedInputSystemControllers = 0;
-
         foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
         {
             if (device is not UnityEngine.InputSystem.XR.XRController controller)
@@ -401,33 +322,38 @@ public class PlayerTrashInteractor : MonoBehaviour
 
             detectedInputSystemControllers++;
 
-            if (IsControlPressedThisFrame(controller, "triggerPressed") ||
-                IsControlPressedThisFrame(controller, "gripPressed") ||
-                IsControlPressedThisFrame(controller, "primaryButton"))
+            if (IsControlPressed(controller, "triggerPressed") ||
+                IsControlPressed(controller, "gripPressed") ||
+                IsControlPressed(controller, "primaryButton"))
             {
+                lastInputSource = "InputSystem XR hold";
                 return true;
             }
         }
-#endif
 
-        return false;
-    }
-
-    private bool WasInputSystemThrowPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        foreach (UnityEngine.InputSystem.InputDevice device in UnityEngine.InputSystem.InputSystem.devices)
+        if (Keyboard.current != null &&
+            (Keyboard.current.pKey.isPressed ||
+             Keyboard.current.tKey.isPressed ||
+             Keyboard.current.uKey.isPressed ||
+             Keyboard.current.bKey.isPressed ||
+             Keyboard.current.digit1Key.isPressed ||
+             Keyboard.current.numpad1Key.isPressed))
         {
-            if (device is not UnityEngine.InputSystem.XR.XRController controller)
-            {
-                continue;
-            }
+            lastInputSource = "keyboard hold";
+            return true;
+        }
 
-            if (IsControlPressedThisFrame(controller, "secondaryButton") ||
-                IsControlPressedThisFrame(controller, "thumbstickClicked"))
-            {
-                return true;
-            }
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+        {
+            lastInputSource = "mouse hold";
+            return true;
+        }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        if (Input.GetKey(KeyCode.P) || Input.GetKey(KeyCode.Alpha1) || Input.GetKey(KeyCode.Keypad1) || Input.GetMouseButton(0))
+        {
+            return true;
         }
 #endif
 
@@ -435,11 +361,11 @@ public class PlayerTrashInteractor : MonoBehaviour
     }
 
 #if ENABLE_INPUT_SYSTEM
-    private static bool IsControlPressedThisFrame(UnityEngine.InputSystem.InputControl parent, string controlName)
+    private static bool IsControlPressed(UnityEngine.InputSystem.InputControl parent, string controlName)
     {
         UnityEngine.InputSystem.Controls.ButtonControl button =
             parent.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>(controlName);
-        return button != null && button.wasPressedThisFrame;
+        return button != null && button.isPressed;
     }
 #endif
 
