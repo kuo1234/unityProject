@@ -340,6 +340,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 0
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &81889738
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -496,63 +497,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2009844588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &244034144
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 105464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_Name
-      value: CityBackdrop_Left
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -97.454834
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.06649685
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 58.592503
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
 --- !u!1 &317645279
 GameObject:
   m_ObjectHideFlags: 0
@@ -1559,6 +1503,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 4
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &775773566
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1921,6 +1866,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 2
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &880868740
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2233,9 +2179,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1035582742}
   - component: {fileID: 1035582741}
-  - component: {fileID: 1035582740}
   - component: {fileID: 1035582739}
   - component: {fileID: 1035582738}
+  - component: {fileID: 1035582743}
   m_Layer: 0
   m_Name: WashingStation
   m_TagString: Untagged
@@ -2281,7 +2227,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: b1d7e4622d0d6104e9705b4ea6875635, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2305,29 +2251,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &1035582740
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1035582737}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!33 &1035582741
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -2345,12 +2268,33 @@ Transform:
   m_GameObject: {fileID: 1035582737}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.2, y: 0.35, z: 0.3}
-  m_LocalScale: {x: 0.8, y: 0.18, z: 0.8}
+  m_LocalPosition: {x: -4.2, y: 0.3, z: 0.3}
+  m_LocalScale: {x: 2.6, y: 0.3, z: 2.6}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1035582743
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1035582737}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.077, y: 5.33, z: 1.077}
+  m_Center: {x: 0, y: 1.667, z: 0}
 --- !u!1 &1327850436
 GameObject:
   m_ObjectHideFlags: 0
@@ -2385,6 +2329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 3
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &1327850438
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2617,6 +2562,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 1
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &1393218786
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2911,63 +2857,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1566278122
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 105464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_Name
-      value: CityBackdrop_Right
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 97.45483
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.06649685
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -8.592506
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
 --- !u!1 &1578902171
 GameObject:
   m_ObjectHideFlags: 0
@@ -3357,7 +3246,7 @@ Transform:
   m_GameObject: {fileID: 1793644279}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.18, z: 0}
+  m_LocalPosition: {x: 0, y: -0.18, z: -3.99}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3448,7 +3337,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -33.592503
+      value: -33.6
       objectReference: {fileID: 0}
     - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
       propertyPath: m_LocalPosition.y
@@ -3456,7 +3345,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 14.171295
+      value: 8.5
       objectReference: {fileID: 0}
     - target: {fileID: 405464, guid: c925872ce3bfa384589bf34b953d5a65, type: 3}
       propertyPath: m_LocalRotation.w
@@ -3954,6 +3843,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BinValidator
   targetCategory: 5
   successVolume: 0.7
+  errorVolume: 0.9
 --- !u!23 &1991053216
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4097,8 +3987,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -4131,7 +4023,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.05, g: 0.06, b: 0.09, a: 1}
-    - _Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _Color: {r: 0.049999982, g: 0.059999965, b: 0.089999996, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &2068478586
@@ -4297,5 +4189,3 @@ SceneRoots:
   - {fileID: 1820670215}
   - {fileID: 1491416368}
   - {fileID: 1951525406}
-  - {fileID: 1566278122}
-  - {fileID: 244034144}

@@ -16,8 +16,10 @@ public class BinValidator : MonoBehaviour
     private Coroutine feedbackRoutine;
     private readonly Dictionary<TrashItem, float> rejectedItems = new Dictionary<TrashItem, float>();
 
-    public float successVolume = 0.7f;
+    public float successVolume = 1f;
+    public float errorVolume = 0.9f;
     private static AudioClip s_successClip;
+    private static AudioClip s_errorClip;
 
     private void Reset()
     {
@@ -77,6 +79,7 @@ public class BinValidator : MonoBehaviour
 
         rejectedItems[trashItem] = Time.time + 0.75f;
         TriggerWrongBinFeedback();
+        PlaySound2D(GetErrorClip(), errorVolume);
 
         Rigidbody itemRigidbody = trashItem.GetComponent<Rigidbody>();
         if (itemRigidbody != null)
@@ -105,7 +108,7 @@ public class BinValidator : MonoBehaviour
         AudioClip clip = GetSuccessClip();
         if (clip != null)
         {
-            AudioSource.PlayClipAtPoint(clip, position, successVolume);
+            PlaySound2D(clip, successVolume);
         }
 
         SpawnSuccessParticles(position, color);
@@ -144,6 +147,23 @@ public class BinValidator : MonoBehaviour
         Destroy(fx, 2f);
     }
 
+    // 2D 播放(spatialBlend=0):不受距離衰減,在任何位置都聽得清楚
+    private static void PlaySound2D(AudioClip clip, float volume)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+
+        GameObject soundObject = new GameObject("SortSound2D");
+        AudioSource source = soundObject.AddComponent<AudioSource>();
+        source.clip = clip;
+        source.volume = Mathf.Clamp01(volume);
+        source.spatialBlend = 0f;
+        source.Play();
+        Destroy(soundObject, clip.length + 0.1f);
+    }
+
     private static AudioClip GetSuccessClip()
     {
         if (s_successClip != null)
@@ -163,12 +183,40 @@ public class BinValidator : MonoBehaviour
             // 兩個和諧音(C6 + E6)做出清脆的「叮」
             float wave = (0.6f * Mathf.Sin(2f * Mathf.PI * 1046.5f * t)) +
                          (0.4f * Mathf.Sin(2f * Mathf.PI * 1318.5f * t));
-            data[i] = wave * envelope * 0.5f;
+            data[i] = wave * envelope * 0.8f;
         }
 
         s_successClip = AudioClip.Create("SortSuccessDing", sampleCount, 1, sampleRate, false);
         s_successClip.SetData(data, 0);
         return s_successClip;
+    }
+
+    private static AudioClip GetErrorClip()
+    {
+        if (s_errorClip != null)
+        {
+            return s_errorClip;
+        }
+
+        int sampleRate = 44100;
+        float duration = 0.32f;
+        int sampleCount = (int)(sampleRate * duration);
+        float[] data = new float[sampleCount];
+
+        for (int i = 0; i < sampleCount; i++)
+        {
+            float t = (float)i / sampleRate;
+            float envelope = Mathf.Exp(-4f * t);
+            // 低沉不協和的「嗡」錯誤聲(兩個接近低頻 + 方波感增加刺耳度)
+            float wave = (0.6f * Mathf.Sin(2f * Mathf.PI * 160f * t)) +
+                         (0.4f * Mathf.Sin(2f * Mathf.PI * 190f * t));
+            wave = (Mathf.Sign(wave) * 0.5f) + (wave * 0.5f);
+            data[i] = wave * envelope * 0.8f;
+        }
+
+        s_errorClip = AudioClip.Create("SortErrorBuzz", sampleCount, 1, sampleRate, false);
+        s_errorClip.SetData(data, 0);
+        return s_errorClip;
     }
 
     private static Color CategoryColor(TrashCategory category)
