@@ -22,6 +22,11 @@ public class ScoreManager : MonoBehaviour
     private float roundTimeRemaining;
     private string feedbackMessage = string.Empty;
     private float feedbackUntilTime;
+    private Color feedbackColor = Color.white;
+
+    private Transform worldBoard;
+    private TextMesh boardStatsText;
+    private TextMesh boardFeedbackText;
 
     private void Awake()
     {
@@ -37,16 +42,18 @@ public class ScoreManager : MonoBehaviour
 
     private void Update()
     {
-        if (!IsRoundActive)
+        EnsureWorldUI();
+
+        if (IsRoundActive)
         {
-            return;
+            roundTimeRemaining = Mathf.Max(0f, roundTimeRemaining - Time.deltaTime);
+            if (roundTimeRemaining <= 0f)
+            {
+                EndRound();
+            }
         }
 
-        roundTimeRemaining = Mathf.Max(0f, roundTimeRemaining - Time.deltaTime);
-        if (roundTimeRemaining <= 0f)
-        {
-            EndRound();
-        }
+        UpdateWorldUI();
     }
 
     public void AddSortedItem()
@@ -86,11 +93,75 @@ public class ScoreManager : MonoBehaviour
     {
         feedbackMessage = message;
         feedbackUntilTime = Time.time + 1.25f;
+        feedbackColor = color;
 
         EnsureStyles();
         if (feedbackStyle != null)
         {
             feedbackStyle.normal.textColor = color;
+        }
+    }
+
+    private void EnsureWorldUI()
+    {
+        if (worldBoard != null)
+        {
+            return;
+        }
+
+        GameObject board = new GameObject("Scoreboard_World");
+        worldBoard = board.transform;
+        worldBoard.position = new Vector3(0f, 2.9f, 4.7f);
+        worldBoard.rotation = Quaternion.Euler(0f, 180f, 0f); // 面向玩家(-z)
+
+        GameObject background = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        background.name = "Background";
+        Destroy(background.GetComponent<Collider>());
+        background.transform.SetParent(worldBoard, false);
+        background.transform.localPosition = new Vector3(0f, 0f, 0.03f);
+        background.transform.localScale = new Vector3(4f, 1.5f, 1f);
+        Material backgroundMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        backgroundMaterial.color = new Color(0.05f, 0.06f, 0.09f, 1f);
+        background.GetComponent<Renderer>().material = backgroundMaterial;
+
+        boardStatsText = CreateBoardText("StatsText", new Vector3(0f, 0.34f, 0f), 0.16f);
+        boardFeedbackText = CreateBoardText("FeedbackText", new Vector3(0f, -0.34f, 0f), 0.3f);
+    }
+
+    private TextMesh CreateBoardText(string objectName, Vector3 localPosition, float charSize)
+    {
+        GameObject textObject = new GameObject(objectName);
+        textObject.transform.SetParent(worldBoard, false);
+        textObject.transform.localPosition = localPosition;
+        textObject.transform.localRotation = Quaternion.identity;
+
+        // 看板父物件轉了 180° 面向玩家,文字會左右鏡像;用 x=-1 翻回正常閱讀方向
+        // (TextMesh 字型材質為雙面 Cull Off,負縮放不會被剔除)
+        textObject.transform.localScale = new Vector3(-1f, 1f, 1f);
+
+        TextMesh textMesh = textObject.AddComponent<TextMesh>();
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.alignment = TextAlignment.Center;
+        textMesh.characterSize = charSize;
+        textMesh.fontSize = 64;
+        textMesh.color = Color.white;
+        return textMesh;
+    }
+
+    private void UpdateWorldUI()
+    {
+        if (boardStatsText != null)
+        {
+            boardStatsText.text = IsRoundActive
+                ? $"Score {score}     Mistakes {mistakes}     Time {Mathf.CeilToInt(roundTimeRemaining)}"
+                : $"Round Over\nScore {score}   Correct {correctSorts}   Mistakes {mistakes}";
+        }
+
+        if (boardFeedbackText != null)
+        {
+            bool showFeedback = Time.time < feedbackUntilTime && !string.IsNullOrEmpty(feedbackMessage);
+            boardFeedbackText.text = showFeedback ? feedbackMessage : string.Empty;
+            boardFeedbackText.color = feedbackColor;
         }
     }
 
