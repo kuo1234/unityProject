@@ -11,8 +11,8 @@ public class PlayerTrashInteractor : MonoBehaviour
     public float pickupRange = 12f;
     public float holdForce = 18f;
     public float throwVelocityMultiplier = 1.2f;
-    public float launchSpeed = 9f;
-    public float maxThrowSpeed = 22f;
+    public float launchSpeed = 13f;
+    public float maxThrowSpeed = 30f;
     public float pointerRadius = 0.35f;
     public float aimAssistViewportRadius = 0.18f;
     public bool autoPickupOnHover = false;
