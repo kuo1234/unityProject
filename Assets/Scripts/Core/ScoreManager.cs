@@ -104,11 +104,27 @@ public class ScoreManager : MonoBehaviour
 
     private void EnsureWorldUI()
     {
-        if (worldBoard != null)
+        if (boardStatsText != null)
         {
             return;
         }
 
+        // 優先使用場景中已存在的看板(可在編輯器手動調整位置/大小)
+        GameObject existingBoard = GameObject.Find("Scoreboard_World");
+        if (existingBoard != null)
+        {
+            worldBoard = existingBoard.transform;
+            Transform statsChild = worldBoard.Find("StatsText");
+            Transform feedbackChild = worldBoard.Find("FeedbackText");
+            if (statsChild != null) boardStatsText = statsChild.GetComponent<TextMesh>();
+            if (feedbackChild != null) boardFeedbackText = feedbackChild.GetComponent<TextMesh>();
+            if (boardStatsText != null && boardFeedbackText != null)
+            {
+                return;
+            }
+        }
+
+        // 場景中沒有現成看板 → 執行時自動建立(備援)
         GameObject board = new GameObject("Scoreboard_World");
         worldBoard = board.transform;
         worldBoard.position = new Vector3(0f, 2.9f, 4.7f);
@@ -125,8 +141,8 @@ public class ScoreManager : MonoBehaviour
         background.GetComponent<Renderer>().material = backgroundMaterial;
 
         boardStatsText = CreateBoardText("StatsText", new Vector3(0f, -0.18f, 0f), 0.16f);
-        // Correct / Wrong bin 回饋字樣移到看板上方,更醒目
-        boardFeedbackText = CreateBoardText("FeedbackText", new Vector3(0f, 0.48f, 0f), 0.3f);
+        // Correct / Wrong bin 回饋字樣浮在看板上方更高處,更醒目
+        boardFeedbackText = CreateBoardText("FeedbackText", new Vector3(0f, 1.15f, 0f), 0.34f);
     }
 
     private TextMesh CreateBoardText(string objectName, Vector3 localPosition, float charSize)
