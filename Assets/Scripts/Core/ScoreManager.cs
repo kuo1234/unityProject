@@ -119,13 +119,14 @@ public class ScoreManager : MonoBehaviour
         Destroy(background.GetComponent<Collider>());
         background.transform.SetParent(worldBoard, false);
         background.transform.localPosition = new Vector3(0f, 0f, 0.03f);
-        background.transform.localScale = new Vector3(4f, 1.5f, 1f);
+        background.transform.localScale = new Vector3(4f, 1.6f, 1f);
         Material backgroundMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
         backgroundMaterial.color = new Color(0.05f, 0.06f, 0.09f, 1f);
         background.GetComponent<Renderer>().material = backgroundMaterial;
 
-        boardStatsText = CreateBoardText("StatsText", new Vector3(0f, 0.34f, 0f), 0.16f);
-        boardFeedbackText = CreateBoardText("FeedbackText", new Vector3(0f, -0.34f, 0f), 0.3f);
+        boardStatsText = CreateBoardText("StatsText", new Vector3(0f, -0.18f, 0f), 0.16f);
+        // Correct / Wrong bin 回饋字樣移到看板上方,更醒目
+        boardFeedbackText = CreateBoardText("FeedbackText", new Vector3(0f, 0.48f, 0f), 0.3f);
     }
 
     private TextMesh CreateBoardText(string objectName, Vector3 localPosition, float charSize)
