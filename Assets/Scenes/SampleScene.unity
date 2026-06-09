@@ -4699,7 +4699,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimplePlayerLocomotion
   head: {fileID: 70209568}
-  moveSpeed: 5
+  moveSpeed: 8
   verticalSpeed: 2
 --- !u!1 &349578230
 GameObject:
