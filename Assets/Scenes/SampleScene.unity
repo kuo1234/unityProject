@@ -4699,7 +4699,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SimplePlayerLocomotion
   head: {fileID: 70209568}
-  moveSpeed: 6000
+  moveSpeed: 5
   verticalSpeed: 2
 --- !u!1 &349578230
 GameObject:
@@ -12092,7 +12092,7 @@ Transform:
   m_GameObject: {fileID: 1035582737}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.4104625, z: -0, w: 0.9118775}
-  m_LocalPosition: {x: -9.63, y: 0.3, z: 1.8400002}
+  m_LocalPosition: {x: -9.32, y: 0.33999997, z: 2.19}
   m_LocalScale: {x: 2.6, y: 0.3, z: 2.6}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12553,7 +12553,7 @@ Transform:
   m_GameObject: {fileID: 1093173828}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.8118256, z: -0, w: 0.5839}
-  m_LocalPosition: {x: -9.63, y: 1.7, z: 1.8400002}
+  m_LocalPosition: {x: -9.32, y: 1.74, z: 2.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
