@@ -189,7 +189,7 @@ public class ScoreManager : MonoBehaviour
         GUI.Label(new Rect(20f, 20f, 320f, 40f), $"Score: {score}", labelStyle);
         GUI.Label(new Rect(20f, 60f, 320f, 40f), $"Mistakes: {mistakes}", labelStyle);
         GUI.Label(new Rect(20f, 100f, 320f, 40f), $"Time: {Mathf.CeilToInt(roundTimeRemaining)}", labelStyle);
-        GUI.Label(new Rect(20f, 140f, 920f, 40f), "Meta XR keys: T=index trigger, U=grip, B=A/X pick/drop. N=B/Y or I=thumbstick throws.", labelStyle);
+        GUI.Label(new Rect(20f, 140f, 1000f, 40f), "Trigger / T / 滑鼠左鍵: 按一下抓起、再按一下丟出。WASD / 搖桿移動。", labelStyle);
 
         if (Time.time < feedbackUntilTime && !string.IsNullOrEmpty(feedbackMessage))
         {

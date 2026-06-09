@@ -51,19 +51,21 @@ public class PlayerTrashInteractor : MonoBehaviour
         }
 
         bool pickupHeld = IsPickupHeld();
-
-        // 上升緣:開始按住 → 吸附最近瞄準的垃圾
-        if (pickupHeld && !previousPickupHeld && heldRigidbody == null)
-        {
-            TryPickup();
-        }
-        // 下降緣:放開 → 依當前揮動速度自然拋出
-        else if (!pickupHeld && previousPickupHeld && heldRigidbody != null)
-        {
-            DropHeldItem(true);
-        }
-
+        bool pickupPressed = pickupHeld && !previousPickupHeld; // 上升緣 = 按一下
         previousPickupHeld = pickupHeld;
+
+        // Toggle:按一下抓起(吸住,不用一直按著 → 拿著時可自由移動);再按一下沿瞄準方向丟出
+        if (pickupPressed)
+        {
+            if (heldRigidbody == null)
+            {
+                TryPickup();
+            }
+            else
+            {
+                DropHeldItem(true);
+            }
+        }
 
         UpdateVisuals();
     }
